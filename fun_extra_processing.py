@@ -132,13 +132,14 @@ if __name__ == "__main__":
     
     cwd = os.getcwd()
     things_that_are_bad = {}
-    n = 0
     for filename, file_info in file_map.items():
         account_number:str = file_info['ACT_ID']
         record_sql:str = find_account_record_from_sql(sqls, account_number)
         record_xlsx: tuple[str,str,str] = find_account_from_xlsx(xlsxes, account_number)
+        
         qid_from_xlsx: str = record_xlsx["Client ID"].upper()
         qid_from_sql: str = str(record_sql[1]).upper()
+        
         email_from_xlsx:str = record_xlsx["Email Address"].lower()
         email_from_sql: str = str(record_sql[2]).lower()
 
@@ -149,10 +150,11 @@ if __name__ == "__main__":
             if account_number not in things_that_are_bad:
                 things_that_are_bad[account_number] = {}
             things_that_are_bad[account_number].update({'email_from_xlsx': email_from_xlsx, 'email_from_sql':email_from_sql})
-        if account_number in things_that_are_bad:
-            continue
-        n += 1
-        new_filename = f"[{qid_from_xlsx}][{account_number}]{email_from_xlsx}[{file_info['REP_ID']}]_{filename}"
+
+        qid = qid_from_xlsx if qid_from_xlsx != "" else qid_from_sql
+        email = email_from_xlsx if email_from_xlsx != "" else email_from_sql
+                        
+        new_filename = f"[{qid}][{account_number}]{email}[{file_info['REP_ID']}]_{filename}"
         shutil.copy(
             os.path.join(cwd, filename),
             os.path.join(cwd, directory_name, new_filename)
@@ -160,4 +162,3 @@ if __name__ == "__main__":
     
     print(json.dumps(things_that_are_bad, indent=2))
     write_json_to_file(things_that_are_bad, os.path.join(cwd,directory_name,f'things_that_are_bad.json'))
-    print(f'bad = {len(things_that_are_bad)}, good = {n}')
