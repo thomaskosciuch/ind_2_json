@@ -52,7 +52,6 @@ if __name__ == "__main__":
         key_value = {}
         _key: None|str = None
         _value: None|str = None
-        _name: None|str = None
         
         for line in file:
             if is_comment(line) or is_other(line):
