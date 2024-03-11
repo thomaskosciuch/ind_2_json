@@ -90,7 +90,7 @@ def find_account_record_from_sql(accounts, account_to_find:str) -> tuple[str, st
     for account in accounts:
         if account[0] == account_to_find:
             return account
-    return tuple("", "", "")
+    return ("", "", "")
 
 def find_account_from_xlsx(xlsx:list[ExcelRow], account_to_find:str) -> ExcelRow:
     for entries in xlsx:
