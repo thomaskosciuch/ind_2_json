@@ -5,8 +5,8 @@
 # example: ```[QW-NWM-1-001214][28DAT17][leah@leahdavidsonlifecoaching.com][HJAV]_000029916.pdf```
 
 
+import csv
 import urllib.parse
-
 
 from typing import TypedDict
 import json
@@ -65,19 +65,19 @@ def get_info_from_sql(account_number_array:list[str]) -> list[tuple[str, str, st
     engine = create_engine(connection_url)
     sql_array = "'" + "','".join(account_number_array) + "'"
     sql_query = text(f"""
-    SELECT 
+    SELECT
         a.accountNumber,
         a.accountOwnersQID,
         u.email
-    FROM 
+    FROM
         account AS a 
-    LEFT JOIN  
-        users AS u 
-    ON 
+    LEFT JOIN
+        users AS u
+    ON
         a.accountOwnersQID = u.QID 
         AND u.currentFlag = 1 
         AND u.deletedFlag = 0
-    WHERE 
+    WHERE
         a.accountNumber IN ({sql_array}) 
         AND a.currentFlag = 1 
         AND a.deletedFlag = 0 
@@ -118,6 +118,12 @@ def write_json_to_file(data, file_path):
     with open(file_path, 'w') as file:
         json.dump(data, file, indent=4)
         
+def write_files_to_csv(filename: str, data:list[list[str]]):
+    with open(filename, 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        for row in data:
+            writer.writerow(row)
+        
 def get_parent_directory() -> str:
     current_directory = os.getcwd()
     return os.path.basename(current_directory)
@@ -132,6 +138,9 @@ if __name__ == "__main__":
     
     cwd = os.getcwd()
     things_that_are_bad = {}
+    filenames = [
+        ['new filename', 'qid', 'account number', 'email', 'rep id', 'incoming filename', '', '', 'excel qid', 'sql qid', 'excel email', 'excel sql']
+    ]
     for filename, file_info in file_map.items():
         account_number:str = file_info['ACT_ID']
         record_sql:str = find_account_record_from_sql(sqls, account_number)
@@ -159,6 +168,8 @@ if __name__ == "__main__":
             os.path.join(cwd, filename),
             os.path.join(cwd, directory_name, new_filename)
         )
+        filenames += [[new_filename, qid, account_number, email, file_info['REP_ID'], filename, '' , '' ,qid_from_xlsx, qid_from_sql, email_from_xlsx, email_from_sql]]
     
     print(json.dumps(things_that_are_bad, indent=2))
     write_json_to_file(things_that_are_bad, os.path.join(cwd,directory_name,f'things_that_are_bad.json'))
+    write_files_to_csv(os.path.join(cwd, directory_name, f'files_in_{get_parent_directory()}.csv'), filenames)
